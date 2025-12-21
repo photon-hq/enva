@@ -1,4 +1,5 @@
 mod handlers;
+mod utils;
 
 use clap::{Args, Parser, Subcommand};
 #[derive(Parser, Debug)]
@@ -15,7 +16,8 @@ struct Cli {
 #[derive(Subcommand, Debug)]
 enum Command {
     Login(LoginArgs),
-    Active
+    Active,
+    Commit
 }
 
 #[derive(Args, Debug)]
@@ -28,13 +30,15 @@ struct LoginArgs {
     gh: bool
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     env_logger::init();
     
     let cli = Cli::parse();
 
     match cli.command {
         Command::Login(args) => handlers::login(args),
-        Command::Active => {}
+        Command::Active => handlers::active().await,
+        Command::Commit => {}
     }
 }

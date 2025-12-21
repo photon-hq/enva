@@ -1,12 +1,6 @@
-[package]
-name = "enva"
-version = "0.1.0"
-edition = "2024"
-license = "MIT"
-
-[dependencies]
-clap = { version = "4.5.53", features = ["derive"] }
-directories = "6.0.0"
-env_logger = "0.11.8"
-log = "0.4.29"
-toml_edit = "0.24.0"
+[workspace]
+members = [
+    "crates/server",
+    "crates/client",
+    "crates/shared"
+]

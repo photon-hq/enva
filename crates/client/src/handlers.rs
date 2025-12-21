@@ -1,7 +1,11 @@
-use std::process::Command;
+use crate::LoginArgs;
+use crate::utils::get_token;
 use directories::ProjectDirs;
+use git2::Repository;
 use log::{error, info};
-use crate::{LoginArgs};
+use std::env;
+use std::path::Path;
+use std::process::Command;
 use toml_edit::{DocumentMut, value};
 
 pub(crate) fn login(args: LoginArgs) {
@@ -30,8 +34,7 @@ pub(crate) fn login(args: LoginArgs) {
 
         info!("Config path: {}", config_path.display());
 
-        let text = std::fs::read_to_string(&config_path)
-            .unwrap_or_else(|_| String::new());
+        let text = std::fs::read_to_string(&config_path).unwrap_or_else(|_| String::new());
 
         let mut doc = text.parse::<DocumentMut>().unwrap_or(DocumentMut::new());
 
@@ -43,5 +46,35 @@ pub(crate) fn login(args: LoginArgs) {
         info!("Token updated successfully");
     } else {
         error!("Failed to get config path")
+    }
+}
+
+pub async fn active() {
+    let current_dir = env::current_dir().expect("Failed to get current directory");
+    let git_path = current_dir.join(".git");
+
+    if Path::new(&git_path).exists() {
+        info!(".git folder found at: {}", git_path.display());
+
+        let repo = Repository::open(".").expect("Failed to open git repository");
+        let remote = repo
+            .find_remote("origin")
+            .expect("Failed to find remote origin");
+        let repo_url = remote.url().expect("Failed to get remote URL");
+
+        info!("Remote URL: {}", repo_url);
+
+        if !shared::check_ownership(&get_token().expect("You need to login first"), repo_url)
+            .await
+            .unwrap_or(false)
+        {
+            panic!("You does not have ownership of the repository");
+        }
+    } else {
+        error!(
+            ".git folder not found in current directory: {}",
+            current_dir.display()
+        );
+        panic!("Please run this command within a git repository");
     }
 }
