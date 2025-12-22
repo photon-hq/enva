@@ -5,7 +5,7 @@ use log::{error, info};
 use std::process::Command;
 use git2::Repository;
 use toml_edit::{DocumentMut, value};
-use shared::models::CommitRequest;
+use shared::models::{CommitRequest, FetchRequest};
 
 pub(crate) fn login(args: LoginArgs) {
     let mut token = args.token.unwrap_or_default();
@@ -58,6 +58,8 @@ pub async fn active() {
     write_git_hook("post-commit", &format!("{} commit", enva_path.display()));
     write_git_hook("post-merge", &format!("{} fetch", enva_path.display()));
     write_git_hook("post-checkout", &format!("{} fetch", enva_path.display()));
+
+    fetch().await;
 }
 
 pub async fn commit() {
@@ -73,12 +75,45 @@ pub async fn commit() {
 
     info!("Latest commit: {}", commit_id);
 
-    endpoints::call_commit(CommitRequest {
+    let res = endpoints::call_commit(CommitRequest {
         repo_url,
         branch: head.shorthand().expect("Failed to get current branch").to_string(),
         commit_id: commit_id.clone(),
         env_files: read_env_file(),
     }).await.expect("Failed to commit");
 
+    if !res.success {
+        panic!("Failed to commit: {}", res.error.unwrap_or_default());
+    }
+
     info!("Commit pushed: {}", commit_id);
+}
+
+pub async fn fetch() {
+    check_ownership().await;
+
+    let repo = Repository::open(".").expect("Failed to open git repository");
+
+    let repo_url = get_repo_url();
+
+    let head = repo.head().expect("Failed to get HEAD reference");
+    let commit = head.peel_to_commit().expect("Failed to get commit from HEAD");
+    let commit_id = commit.id().to_string();
+
+    info!("Latest commit: {}", commit_id);
+
+    let res = endpoints::call_fetch(FetchRequest {
+        repo_url,
+        commit_id,
+    }).await.expect("Failed to fetch");
+
+    if !res.success {
+        panic!("Failed to fetch: {}", res.error.unwrap_or_default());
+    }
+
+    info!("Env files fetched successfully");
+
+    for (file_path, content) in res.env_files.unwrap_or_default() {
+        std::fs::write(file_path, content).expect("Failed to write env file");
+    }
 }

@@ -2,7 +2,7 @@ use crate::utils::get_token;
 use dotenvy_macro::dotenv;
 use log::{error};
 use reqwest::{Error, Response};
-use shared::models::{CommitRequest, CommitResponse};
+use shared::models::{CommitRequest, CommitResponse, FetchRequest, FetchResponse};
 use serde::de::DeserializeOwned;
 
 async fn parse_response<T: DeserializeOwned>(res: Result<Response, Error>) -> Option<T> {
@@ -40,4 +40,17 @@ pub async fn call_commit(req: CommitRequest) -> Option<CommitResponse> {
         .await;
 
     parse_response::<CommitResponse>(res).await
+}
+
+pub async fn call_fetch(req: FetchRequest) -> Option<FetchResponse> {
+    let client = reqwest::Client::new();
+
+    let res = client
+        .post(format!("{}/fetch", dotenv!("BASE_URL"))) // Adjust URL/Port
+        .bearer_auth(get_token().expect("Failed to get token"))
+        .json(&req)
+        .send()
+        .await;
+
+    parse_response::<FetchResponse>(res).await
 }
