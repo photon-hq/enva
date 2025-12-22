@@ -44,7 +44,17 @@ pub fn write_git_hook(hook_name: &str, hook_content: &str) {
         content.push_str(format!("\n{}", hook_content).as_str());
     }
 
-    std::fs::write(&hook_path, content).expect("Failed to write hook file");
+    fs::write(&hook_path, content).expect("Failed to write hook file");
+
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mut perms = fs::metadata(&hook_path)
+            .expect("Failed to read hook file metadata")
+            .permissions();
+        perms.set_mode(0o755);
+        fs::set_permissions(&hook_path, perms).expect("Failed to set hook file permissions");
+    }
 }
 
 pub fn get_repo_url() -> String {
