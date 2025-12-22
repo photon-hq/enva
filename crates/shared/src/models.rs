@@ -14,3 +14,16 @@ pub struct CommitResponse {
     pub success: bool,
     pub error: Option<String>,
 }
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct FetchRequest {
+    pub repo_url: String,
+    pub commit_id: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FetchResponse {
+    pub success: bool,
+    pub env_files: Option<HashMap<String, String>>,
+    pub error: Option<String>,
+}

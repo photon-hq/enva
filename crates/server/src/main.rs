@@ -10,7 +10,9 @@ use std::net::SocketAddr;
 async fn main() {
     env_logger::init();
 
-    let app = Router::new().route("/commit", post(handlers::commit));
+    let app = Router::new()
+        .route("/commit", post(handlers::commit))
+        .route("/fetch", post(handlers::fetch));
 
     let addr = SocketAddr::from((
         [0, 0, 0, 0],
