@@ -36,7 +36,7 @@ enva --version
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/enva.git
+git clone https://github.com/photon-hq/enva.git
 cd enva
 
 # Install the CLI
