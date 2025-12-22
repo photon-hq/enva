@@ -1,5 +1,5 @@
 use crate::LoginArgs;
-use crate::utils::get_token;
+use crate::utils::{get_enva_executable_path, get_token, write_git_hook};
 use directories::ProjectDirs;
 use git2::Repository;
 use log::{error, info};
@@ -70,6 +70,14 @@ pub async fn active() {
         {
             panic!("You does not have ownership of the repository");
         }
+
+        let enva_path = get_enva_executable_path().expect("Failed to get enva executable path");
+
+        info!("Executing enva binary at: {}", enva_path.display());
+
+        write_git_hook("post-commit", &format!("{} commit", enva_path.display()));
+        write_git_hook("post-merge", &format!("{} fetch", enva_path.display()));
+        write_git_hook("post-checkout", &format!("{} fetch", enva_path.display()));
     } else {
         error!(
             ".git folder not found in current directory: {}",

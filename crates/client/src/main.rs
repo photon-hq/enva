@@ -17,7 +17,10 @@ struct Cli {
 enum Command {
     Login(LoginArgs),
     Active,
-    Commit
+    #[command(hide = true)]
+    Commit,
+    #[command(hide = true)]
+    Fetch
 }
 
 #[derive(Args, Debug)]
@@ -40,5 +43,6 @@ async fn main() {
         Command::Login(args) => handlers::login(args),
         Command::Active => handlers::active().await,
         Command::Commit => {}
+        Command::Fetch => {}
     }
 }
