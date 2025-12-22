@@ -1,0 +1,5 @@
+[phases.build]
+cmds = ["cargo build --release -p server"]
+
+[start]
+cmd = "./target/release/server"
