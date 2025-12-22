@@ -1,5 +1,5 @@
 use crate::db;
-use crate::models::{CommitRequest, CommitResponse};
+use shared::models::{CommitRequest, CommitResponse};
 use axum::Json;
 use axum::http::{HeaderMap};
 

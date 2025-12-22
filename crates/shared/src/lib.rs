@@ -1,6 +1,8 @@
 use octocrab::Octocrab;
 use log::info;
 
+pub mod models;
+
 pub fn parse_github_repo(url: &str) -> Option<(String, String)> {
     // SSH form: git@github.com:org/repo.git
     if let Some(rest) = url.strip_prefix("git@github.com:") {

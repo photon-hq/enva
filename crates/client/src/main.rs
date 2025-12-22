@@ -1,5 +1,6 @@
 mod handlers;
 mod utils;
+mod endpoints;
 
 use clap::{Args, Parser, Subcommand};
 #[derive(Parser, Debug)]
@@ -42,7 +43,7 @@ async fn main() {
     match cli.command {
         Command::Login(args) => handlers::login(args),
         Command::Active => handlers::active().await,
-        Command::Commit => {}
+        Command::Commit => handlers::commit().await,
         Command::Fetch => {}
     }
 }

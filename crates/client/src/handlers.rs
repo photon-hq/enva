@@ -1,12 +1,11 @@
-use crate::LoginArgs;
-use crate::utils::{get_enva_executable_path, get_token, write_git_hook};
+use crate::{endpoints, LoginArgs};
+use crate::utils::{check_ownership, get_enva_executable_path, get_repo_url, read_env_file, write_git_hook};
 use directories::ProjectDirs;
-use git2::Repository;
 use log::{error, info};
-use std::env;
-use std::path::Path;
 use std::process::Command;
+use git2::Repository;
 use toml_edit::{DocumentMut, value};
+use shared::models::CommitRequest;
 
 pub(crate) fn login(args: LoginArgs) {
     let mut token = args.token.unwrap_or_default();
@@ -50,39 +49,36 @@ pub(crate) fn login(args: LoginArgs) {
 }
 
 pub async fn active() {
-    let current_dir = env::current_dir().expect("Failed to get current directory");
-    let git_path = current_dir.join(".git");
+    check_ownership().await;
+    
+    let enva_path = get_enva_executable_path().expect("Failed to get enva executable path");
 
-    if Path::new(&git_path).exists() {
-        info!(".git folder found at: {}", git_path.display());
+    info!("Executing enva binary at: {}", enva_path.display());
 
-        let repo = Repository::open(".").expect("Failed to open git repository");
-        let remote = repo
-            .find_remote("origin")
-            .expect("Failed to find remote origin");
-        let repo_url = remote.url().expect("Failed to get remote URL");
+    write_git_hook("post-commit", &format!("{} commit", enva_path.display()));
+    write_git_hook("post-merge", &format!("{} fetch", enva_path.display()));
+    write_git_hook("post-checkout", &format!("{} fetch", enva_path.display()));
+}
 
-        info!("Remote URL: {}", repo_url);
+pub async fn commit() {
+    check_ownership().await;
 
-        if !shared::check_ownership(&get_token().expect("You need to login first"), repo_url)
-            .await
-            .unwrap_or(false)
-        {
-            panic!("You does not have ownership of the repository");
-        }
+    let repo = Repository::open(".").expect("Failed to open git repository");
 
-        let enva_path = get_enva_executable_path().expect("Failed to get enva executable path");
+    let repo_url = get_repo_url();
 
-        info!("Executing enva binary at: {}", enva_path.display());
+    let head = repo.head().expect("Failed to get HEAD reference");
+    let commit = head.peel_to_commit().expect("Failed to get commit from HEAD");
+    let commit_id = commit.id().to_string();
 
-        write_git_hook("post-commit", &format!("{} commit", enva_path.display()));
-        write_git_hook("post-merge", &format!("{} fetch", enva_path.display()));
-        write_git_hook("post-checkout", &format!("{} fetch", enva_path.display()));
-    } else {
-        error!(
-            ".git folder not found in current directory: {}",
-            current_dir.display()
-        );
-        panic!("Please run this command within a git repository");
-    }
+    info!("Latest commit: {}", commit_id);
+
+    endpoints::call_commit(CommitRequest {
+        repo_url,
+        branch: head.shorthand().expect("Failed to get current branch").to_string(),
+        commit_id: commit_id.clone(),
+        env_files: read_env_file(),
+    }).await.expect("Failed to commit");
+
+    info!("Commit pushed: {}", commit_id);
 }

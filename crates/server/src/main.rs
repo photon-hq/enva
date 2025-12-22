@@ -1,9 +1,8 @@
 mod handlers;
-mod models;
 mod db;
 
 use axum::Router;
-use axum::routing::{post};
+use axum::routing::post;
 use std::env;
 use std::net::SocketAddr;
 
