@@ -1,11 +1,17 @@
+mod handlers;
+mod models;
+mod db;
+
 use axum::Router;
-use axum::routing::{get, post};
+use axum::routing::{post};
 use std::env;
 use std::net::SocketAddr;
 
 #[tokio::main]
 async fn main() {
-    let app = Router::new().route("/commit", post(create_user));
+    env_logger::init();
+
+    let app = Router::new().route("/commit", post(handlers::commit));
 
     let addr = SocketAddr::from((
         [0, 0, 0, 0],

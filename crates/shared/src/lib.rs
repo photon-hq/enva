@@ -1,7 +1,7 @@
 use octocrab::Octocrab;
 use log::info;
 
-fn parse_github_repo(url: &str) -> Option<(String, String)> {
+pub fn parse_github_repo(url: &str) -> Option<(String, String)> {
     // SSH form: git@github.com:org/repo.git
     if let Some(rest) = url.strip_prefix("git@github.com:") {
         let parts: Vec<_> = rest.trim_end_matches(".git").split('/').collect();
