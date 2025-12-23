@@ -55,6 +55,7 @@ jobs:
       publishing: ${{ !github.event.pull_request }}
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      BASE_URL: https://enva.photon.codes
     steps:
       - uses: actions/checkout@v4
         with:
