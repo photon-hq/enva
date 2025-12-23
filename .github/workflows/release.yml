@@ -55,7 +55,6 @@ jobs:
       publishing: ${{ !github.event.pull_request }}
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      BASE_URL: https://enva.photon.codes
     steps:
       - uses: actions/checkout@v4
         with:
@@ -128,6 +127,8 @@ jobs:
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
             echo "$HOME/.cargo/bin" >> $GITHUB_PATH
           fi
+      - name: "Set BASE_URL for builds"
+        run: "echo \"BASE_URL=https://enva.photon.codes\" >> \"$GITHUB_ENV\""
       - name: Install dist
         run: ${{ matrix.install_dist.run }}
       # Get the dist-manifest
