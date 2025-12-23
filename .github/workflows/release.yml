@@ -128,7 +128,7 @@ jobs:
             echo "$HOME/.cargo/bin" >> $GITHUB_PATH
           fi
       - name: "Set BASE_URL for builds"
-        run: "echo \"BASE_URL=https://enva.photon.codes\" >> \"$GITHUB_ENV\""
+        run: "echo \"BASE_URL=https://enva.photon.codes\" > .env"
       - name: Install dist
         run: ${{ matrix.install_dist.run }}
       # Get the dist-manifest
