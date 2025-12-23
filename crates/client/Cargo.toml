@@ -1,6 +1,6 @@
 [package]
 name = "client"
-version = "1.0.8"
+version = "1.0.9"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/photon-hq/enva"
