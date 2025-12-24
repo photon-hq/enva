@@ -127,8 +127,10 @@ This command:
 Enva enforces strict access control through GitHub:
 
 1. **GitHub Token Authentication** - All requests require a valid GitHub personal access token
-2. **Organization Membership** - Users must be members of the repository's GitHub organization
-3. **Repository Permissions** - Users must have at least read permissions on the repository
+2. **Repository Permissions** - Users must have at least read permissions on the repository
+3. **Access Control**:
+   - Users with **write (push) permissions** are granted immediate access
+   - Users with **read permissions** must also be members of the repository's GitHub organization
 
 These checks are performed via the GitHub API on every commit and fetch operation, ensuring only authorized team members can access shared environment files.
 
@@ -137,7 +139,7 @@ These checks are performed via the GitHub API on every commit and fetch operatio
 1. When you activate enva in a repository, Git hooks are installed automatically
 2. After each commit, the `post-commit` hook uploads your `.env*` files to the server
 3. When you pull changes or switch branches, hooks automatically download the latest environment files for that specific commit
-4. All operations verify your GitHub organization membership before proceeding
+4. All operations verify your GitHub repository access permissions before proceeding
 
 ### Branch-specific Environments
 
@@ -270,7 +272,8 @@ Distribute this custom-built binary to your team members so they connect to your
 ## Limitations
 
 - Only supports GitHub repositories
-- Only works with organization-owned repositories (not personal repos)
+- For organization-owned repositories: users need either write permission OR (read permission + organization membership)
+- For personal repositories: users need write permission
 - Environment files must match the `.env*` pattern
 - Requires internet connection for GitHub API verification
 - Files are stored in plaintext on the server (ensure server security)
