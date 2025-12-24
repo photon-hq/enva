@@ -44,8 +44,15 @@ pub async fn check_ownership(token: &str, repo_url: &str) -> Result<bool, String
             .map_err(|e| e.to_string())?;
 
         if let Some(perms) = repo.permissions {
+            // Allow if user has write permission
+            if perms.push {
+                info!("User {} has write permission to {}/{}", username, owner, repo_name);
+                return Ok(true);
+            }
+
+            // Otherwise, check if user is org member with at least read permission
             if !perms.pull {
-                return Err("You don't read permissions on this repo".to_string());
+                return Err("You don't have read permissions on this repo".to_string());
             }
 
             if let Some(owner_info) = repo.owner {
@@ -66,7 +73,7 @@ pub async fn check_ownership(token: &str, repo_url: &str) -> Result<bool, String
                     ));
                 }
 
-                info!("User {} verified as member of {}", username, owner);
+                info!("User {} verified as org member with read permission to {}/{}", username, owner, repo_name);
             }
         }
     }
