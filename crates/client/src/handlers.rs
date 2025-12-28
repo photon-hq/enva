@@ -1,4 +1,4 @@
-use crate::{endpoints, LoginArgs};
+use crate::{endpoints, ActiveArgs, LoginArgs};
 use crate::utils::{check_ownership, get_enva_executable_path, get_repo_url, read_env_file, write_git_hook};
 use directories::ProjectDirs;
 use log::{error, info};
@@ -6,6 +6,7 @@ use std::process::Command;
 use git2::Repository;
 use toml_edit::{DocumentMut, value};
 use shared::models::{CommitRequest, FetchRequest};
+use crate::encryption::save_pwd;
 
 pub(crate) fn login(args: LoginArgs) {
     let mut token = args.token.unwrap_or_default();
@@ -48,8 +49,12 @@ pub(crate) fn login(args: LoginArgs) {
     }
 }
 
-pub async fn active() {
+pub async fn active(args: ActiveArgs) {
     check_ownership().await;
+
+    if let Some(password) = args.password {
+        save_pwd(&get_repo_url(), &password)
+    }
     
     let enva_path = get_enva_executable_path().expect("Failed to get enva executable path");
 
