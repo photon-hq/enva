@@ -51,6 +51,6 @@ async fn main() {
         Command::Login(args) => handlers::login(args),
         Command::Active(args) => handlers::active(args).await,
         Command::Commit => handlers::commit().await,
-        Command::Fetch => {}
+        Command::Fetch => handlers::fetch().await,
     }
 }
