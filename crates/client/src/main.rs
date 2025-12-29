@@ -19,9 +19,7 @@ struct Cli {
 enum Command {
     Login(LoginArgs),
     Active(ActiveArgs),
-    #[command(hide = true)]
     Commit,
-    #[command(hide = true)]
     Fetch,
 }
 
