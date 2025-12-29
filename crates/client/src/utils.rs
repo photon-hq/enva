@@ -12,20 +12,27 @@ pub fn get_enva_executable_path() -> Option<PathBuf> {
     which("enva").ok()
 }
 
-pub fn get_token() -> Option<String> {
-    if let Some(dirs) = ProjectDirs::from("codes", "photon", "enva") {
-        let config_path = dirs.config_dir().join("config.toml");
+pub fn get_config_path() -> Option<PathBuf> {
+    ProjectDirs::from("codes", "photon", "enva").map(|dirs| dirs.config_dir().join("config.toml"))
+}
 
-        let text = std::fs::read_to_string(&config_path).unwrap_or_else(|_| String::new());
+pub fn read_config() -> DocumentMut {
+    let config_path = get_config_path().expect("Failed to get config path");
+    let text = std::fs::read_to_string(&config_path).unwrap_or_else(|_| String::new());
+    text.parse::<DocumentMut>().unwrap_or_default()
+}
 
-        let doc = text
-            .parse::<DocumentMut>()
-            .expect("You need to login first");
-
-        return Some(doc["auth"]["gh_token"].as_str().unwrap().to_string());
+pub fn write_config(doc: DocumentMut) {
+    let config_path = get_config_path().expect("Failed to get config path");
+    if let Some(parent) = config_path.parent() {
+        std::fs::create_dir_all(parent).expect("Failed to create config directory");
     }
+    std::fs::write(&config_path, doc.to_string()).expect("Failed to write config file");
+}
 
-    None
+pub fn get_token() -> Option<String> {
+    let doc = read_config();
+    doc["auth"]["gh_token"].as_str().map(|s| s.to_string())
 }
 
 pub fn write_git_hook(hook_name: &str, hook_content: &str) {

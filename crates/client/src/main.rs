@@ -1,6 +1,7 @@
+mod encryption;
+mod endpoints;
 mod handlers;
 mod utils;
-mod endpoints;
 
 use clap::{Args, Parser, Subcommand};
 #[derive(Parser, Debug)]
@@ -17,11 +18,9 @@ struct Cli {
 #[derive(Subcommand, Debug)]
 enum Command {
     Login(LoginArgs),
-    Active,
-    #[command(hide = true)]
+    Active(ActiveArgs),
     Commit,
-    #[command(hide = true)]
-    Fetch
+    Fetch,
 }
 
 #[derive(Args, Debug)]
@@ -31,19 +30,25 @@ struct LoginArgs {
     token: Option<String>,
 
     #[arg(long, help = "Use Github cli token")]
-    gh: bool
+    gh: bool,
+}
+
+#[derive(Args, Debug)]
+struct ActiveArgs {
+    #[arg(long, short, help = "Set password for encryption")]
+    password: Option<String>,
 }
 
 #[tokio::main]
 async fn main() {
     env_logger::init();
-    
+
     let cli = Cli::parse();
 
     match cli.command {
         Command::Login(args) => handlers::login(args),
-        Command::Active => handlers::active().await,
+        Command::Active(args) => handlers::active(args).await,
         Command::Commit => handlers::commit().await,
-        Command::Fetch => {}
+        Command::Fetch => handlers::fetch().await,
     }
 }
