@@ -1,12 +1,14 @@
 use crate::{endpoints, ActiveArgs, LoginArgs};
-use crate::utils::{check_ownership, get_enva_executable_path, get_repo_url, read_env_file, write_git_hook};
-use directories::ProjectDirs;
+use crate::utils::{
+    check_ownership, get_enva_executable_path, get_repo_url, read_config, read_env_file,
+    write_config, write_git_hook,
+};
 use log::{error, info};
 use std::process::Command;
 use git2::Repository;
-use toml_edit::{DocumentMut, value};
+use toml_edit::value;
 use shared::models::{CommitRequest, FetchRequest};
-use crate::encryption::save_pwd;
+use crate::encryption::{encrypt_string, save_pwd};
 
 pub(crate) fn login(args: LoginArgs) {
     let mut token = args.token.unwrap_or_default();
@@ -29,31 +31,30 @@ pub(crate) fn login(args: LoginArgs) {
 
     info!("Token received successfully: {}", token);
 
-    if let Some(dirs) = ProjectDirs::from("codes", "photon", "enva") {
-        let config_path = dirs.config_dir().join("config.toml");
+    let mut doc = read_config();
 
-        info!("Config path: {}", config_path.display());
+    doc["auth"]["gh_token"] = value(token);
 
-        let text = std::fs::read_to_string(&config_path).unwrap_or_else(|_| String::new());
+    write_config(doc);
 
-        let mut doc = text.parse::<DocumentMut>().unwrap_or(DocumentMut::new());
-
-        doc["auth"]["gh_token"] = value(token);
-
-        std::fs::create_dir_all(dirs.config_dir()).expect("Failed to create config directory");
-        std::fs::write(&config_path, doc.to_string()).expect("Failed to write config file");
-
-        info!("Token updated successfully");
-    } else {
-        error!("Failed to get config path")
-    }
+    info!("Token updated successfully");
 }
 
 pub async fn active(args: ActiveArgs) {
     check_ownership().await;
 
     if let Some(password) = args.password {
-        save_pwd(&get_repo_url(), &password)
+        info!("Saving password to keychain");
+
+        save_pwd(&get_repo_url(), &password);
+
+        let (owner, repo_name) = shared::parse_github_repo(&get_repo_url()).expect("Invalid repo URL");
+
+        info!("Setting encrypted flag to true in config");
+
+        let mut doc = read_config();
+        doc[&format!("{owner}:{repo_name}")]["encrypted"] = value(true);
+        write_config(doc);
     }
     
     let enva_path = get_enva_executable_path().expect("Failed to get enva executable path");
@@ -80,12 +81,28 @@ pub async fn commit() {
 
     info!("Latest commit: {}", commit_id);
 
+    let (owner, repo_name) = shared::parse_github_repo(&repo_url).expect("Invalid repo URL");
+
+    let doc = read_config();
+
+    let encrypted = doc[&format!("{owner}:{repo_name}")]["encrypted"].as_bool().unwrap_or(false);
+
+    let env_files = match encrypted {
+        false => read_env_file(),
+        true => read_env_file().into_iter().map(|(k, v)| (k, encrypt_string(&repo_url, &v))).collect()
+    };
+
     let res = endpoints::call_commit(CommitRequest {
         repo_url,
-        branch: head.shorthand().expect("Failed to get current branch").to_string(),
+        branch: head
+            .shorthand()
+            .expect("Failed to get current branch")
+            .to_string(),
         commit_id: commit_id.clone(),
-        env_files: read_env_file(),
-    }).await.expect("Failed to commit");
+        env_files,
+    })
+    .await
+    .expect("Failed to commit");
 
     if !res.success {
         panic!("Failed to commit: {}", res.error.unwrap_or_default());

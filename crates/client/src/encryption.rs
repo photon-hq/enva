@@ -21,8 +21,10 @@ pub fn save_pwd(repo_url: &str, password: &str) {
     save_derived_key(&owner, &repo_name, key).expect("Failed to save key to keychain");
 }
 
-pub fn encrypt_string(key: &[u8; 32], plaintext: &str) -> String {
-    let (ciphertext, nonce) = encrypt(key, plaintext.as_bytes());
+pub fn encrypt_string(repo_url: &str, plaintext: &str) -> String {
+    let (owner, repo_name) = shared::parse_github_repo(repo_url).expect("Invalid repo URL");
+    
+    let (ciphertext, nonce) = encrypt(&load_derived_key(&owner, &repo_name).expect("Failed to load key from keychain"), plaintext.as_bytes());
 
     // combine nonce + ciphertext
     let mut output = Vec::new();
@@ -32,12 +34,14 @@ pub fn encrypt_string(key: &[u8; 32], plaintext: &str) -> String {
     general_purpose::STANDARD.encode(output)
 }
 
-pub fn decrypt_string(key: &[u8; 32], encrypted_b64: &str) -> String {
+pub fn decrypt_string(repo_url: &str, encrypted_b64: &str) -> String {
+    let (owner, repo_name) = shared::parse_github_repo(repo_url).expect("Invalid repo URL");
+    
     let data = general_purpose::STANDARD.decode(encrypted_b64).unwrap();
 
     let (nonce, ciphertext) = data.split_at(12);
 
-    let plaintext = decrypt(key, ciphertext, nonce.try_into().unwrap());
+    let plaintext = decrypt(&load_derived_key(&owner, &repo_name).expect("Failed to load key from keychain"), ciphertext, nonce.try_into().unwrap());
 
     String::from_utf8(plaintext).unwrap()
 }
@@ -56,7 +60,7 @@ fn derive_key(owner: &str, repo_name: &str, password: &str) -> [u8; KEY_LEN] {
     key
 }
 
-fn encrypt(key: &[u8; 32], plaintext: &[u8]) -> (Vec<u8>, [u8; 12]) {
+fn encrypt(key: &[u8], plaintext: &[u8]) -> (Vec<u8>, [u8; 12]) {
     let cipher = Aes256Gcm::new_from_slice(key).unwrap();
 
     let nonce = Aes256Gcm::generate_nonce(&mut OsRng);
@@ -65,7 +69,7 @@ fn encrypt(key: &[u8; 32], plaintext: &[u8]) -> (Vec<u8>, [u8; 12]) {
     (ciphertext, nonce.into())
 }
 
-fn decrypt(key: &[u8; 32], ciphertext: &[u8], nonce: &[u8; 12]) -> Vec<u8> {
+fn decrypt(key: &[u8], ciphertext: &[u8], nonce: &[u8; 12]) -> Vec<u8> {
     let cipher = Aes256Gcm::new_from_slice(key).unwrap();
     cipher
         .decrypt(Nonce::from_slice(nonce), ciphertext)

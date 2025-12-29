@@ -270,10 +270,8 @@ Distribute this custom-built binary to your team members so they connect to your
 ## Limitations
 
 - Only supports GitHub repositories
-- Only works with organization-owned repositories (not personal repos)
 - Environment files must match the `.env*` pattern
 - Requires internet connection for GitHub API verification
-- Files are stored in plaintext on the server (ensure server security)
 
 ## Contributing
 
