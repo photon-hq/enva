@@ -8,7 +8,7 @@ use std::process::Command;
 use git2::Repository;
 use toml_edit::value;
 use shared::models::{CommitRequest, FetchRequest};
-use crate::encryption::{encrypt_string, save_pwd};
+use crate::encryption::{decrypt_string, encrypt_string, save_pwd};
 
 pub(crate) fn login(args: LoginArgs) {
     let mut token = args.token.unwrap_or_default();
@@ -47,6 +47,8 @@ pub async fn active(args: ActiveArgs) {
         info!("Saving password to keychain");
 
         save_pwd(&get_repo_url(), &password);
+
+        info!("Password saved successfully");
 
         let (owner, repo_name) = shared::parse_github_repo(&get_repo_url()).expect("Invalid repo URL");
 
@@ -118,6 +120,8 @@ pub async fn fetch() {
 
     let repo_url = get_repo_url();
 
+    let (owner, repo_name) = shared::parse_github_repo(&repo_url).expect("Failed to parse GitHub repo URL");
+
     let head = repo.head().expect("Failed to get HEAD reference");
     let commit = head.peel_to_commit().expect("Failed to get commit from HEAD");
     let commit_id = commit.id().to_string();
@@ -125,7 +129,7 @@ pub async fn fetch() {
     info!("Latest commit: {}", commit_id);
 
     let res = endpoints::call_fetch(FetchRequest {
-        repo_url,
+        repo_url: repo_url.clone(),
         commit_id,
     }).await.expect("Failed to fetch");
 
@@ -135,7 +139,13 @@ pub async fn fetch() {
 
     info!("Env files fetched successfully");
 
+    let doc = read_config();
+    let encrypted = doc[&format!("{owner}:{repo_name}")]["encrypted"].as_bool().unwrap_or(false);
+
     for (file_path, content) in res.env_files.unwrap_or_default() {
-        std::fs::write(file_path, content).expect("Failed to write env file");
+        std::fs::write(file_path, match encrypted {
+            false => content,
+            true => decrypt_string(&repo_url, &content)
+        }).expect("Failed to write env file");
     }
 }

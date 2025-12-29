@@ -21,6 +21,6 @@ serde = "1.0.228"
 pbkdf2 = "0.12.2"
 sha2 = "0.10.9"
 zeroize = "1.8.2"
-keyring = "3.6.3"
+keyring = { version = "3.6.3", features = ["apple-native", "windows-native", "linux-native", "crypto-rust"] }
 base64 = "0.22.1"
 aes-gcm = "0.10.3"

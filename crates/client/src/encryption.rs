@@ -1,5 +1,5 @@
 use aes_gcm::{
-    AeadCore, Aes256Gcm, Nonce,
+    AeadCore, Aes256Gcm,
     aead::{Aead, KeyInit, OsRng},
 };
 use base64::engine::general_purpose;
@@ -16,14 +16,14 @@ const SERVICE: &str = "codes.photon.enva";
 
 pub fn save_pwd(repo_url: &str, password: &str) {
     let (owner, repo_name) = shared::parse_github_repo(repo_url).expect("Invalid repo URL");
-    
+
     let key = Vec::from(derive_key(&owner, &repo_name, password));
     save_derived_key(&owner, &repo_name, key).expect("Failed to save key to keychain");
 }
 
 pub fn encrypt_string(repo_url: &str, plaintext: &str) -> String {
     let (owner, repo_name) = shared::parse_github_repo(repo_url).expect("Invalid repo URL");
-    
+
     let (ciphertext, nonce) = encrypt(&load_derived_key(&owner, &repo_name).expect("Failed to load key from keychain"), plaintext.as_bytes());
 
     // combine nonce + ciphertext
@@ -36,7 +36,7 @@ pub fn encrypt_string(repo_url: &str, plaintext: &str) -> String {
 
 pub fn decrypt_string(repo_url: &str, encrypted_b64: &str) -> String {
     let (owner, repo_name) = shared::parse_github_repo(repo_url).expect("Invalid repo URL");
-    
+
     let data = general_purpose::STANDARD.decode(encrypted_b64).unwrap();
 
     let (nonce, ciphertext) = data.split_at(12);
@@ -72,7 +72,7 @@ fn encrypt(key: &[u8], plaintext: &[u8]) -> (Vec<u8>, [u8; 12]) {
 fn decrypt(key: &[u8], ciphertext: &[u8], nonce: &[u8; 12]) -> Vec<u8> {
     let cipher = Aes256Gcm::new_from_slice(key).unwrap();
     cipher
-        .decrypt(Nonce::from_slice(nonce), ciphertext)
+        .decrypt(nonce.into(), ciphertext)
         .unwrap()
 }
 
