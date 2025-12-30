@@ -1,0 +1,11 @@
+services:
+  flux-server:
+    build:
+      context: .
+      dockerfile: .nixpacks/Dockerfile
+    ports:
+      - "3000:8080"
+    volumes:
+      - "enva_data:/config"
+    environment:
+      - "ENVA_CONFIG_PATH=/config"

@@ -1,7 +1,17 @@
 use octocrab::Octocrab;
 use log::info;
+use std::path::PathBuf;
+use directories::ProjectDirs;
 
 pub mod models;
+
+pub fn get_config_dir() -> Option<PathBuf> {
+    if let Ok(path) = std::env::var("ENVA_CONFIG_PATH") {
+        return Some(PathBuf::from(path));
+    }
+
+    ProjectDirs::from("codes", "photon", "enva").map(|dirs| dirs.config_dir().to_path_buf())
+}
 
 pub fn parse_github_repo(url: &str) -> Option<(String, String)> {
     // SSH form: git@github.com:org/repo.git
@@ -79,4 +89,25 @@ pub async fn check_ownership(token: &str, repo_url: &str) -> Result<bool, String
     }
 
     Ok(true)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::env;
+
+    #[test]
+    fn test_get_config_dir_env_var() {
+        let temp_path = "/tmp/enva_config_test";
+        unsafe { env::set_var("ENVA_CONFIG_PATH", temp_path); }
+        assert_eq!(get_config_dir(), Some(PathBuf::from(temp_path)));
+        unsafe { env::remove_var("ENVA_CONFIG_PATH"); }
+    }
+
+    #[test]
+    fn test_get_config_dir_default() {
+        unsafe { env::remove_var("ENVA_CONFIG_PATH"); }
+        let config_dir = get_config_dir();
+        assert!(config_dir.is_some());
+    }
 }

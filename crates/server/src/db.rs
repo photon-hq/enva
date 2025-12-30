@@ -1,4 +1,3 @@
-use directories::ProjectDirs;
 use log::info;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -42,11 +41,11 @@ pub fn save(
             env_files_paths,
         };
 
-        if let Some(dirs) = ProjectDirs::from("codes", "photon", "enva") {
-            let db_path = dirs.config_dir().join("db.toml");
+        if let Some(config_dir) = shared::get_config_dir() {
+            let db_path = config_dir.join("db.toml");
             info!("DB path: {}", db_path.display());
 
-            std::fs::create_dir_all(dirs.config_dir()).expect("Failed to create config directory");
+            std::fs::create_dir_all(&config_dir).expect("Failed to create config directory");
 
             let text = std::fs::read_to_string(&db_path).unwrap_or_else(|_| String::new());
 
@@ -67,8 +66,8 @@ pub fn save(
 }
 
 fn save_file(file_id: &str, content: &str) -> Result<(), String> {
-    if let Some(dirs) = ProjectDirs::from("codes", "photon", "enva") {
-        let envs_dir = dirs.config_dir().join("envs");
+    if let Some(config_dir) = shared::get_config_dir() {
+        let envs_dir = config_dir.join("envs");
         info!("Env dir: {}", envs_dir.display());
 
         std::fs::create_dir_all(&envs_dir).expect("Failed to create env directory");
@@ -89,8 +88,8 @@ pub fn read(
     if let Some((owner, repo_name)) = shared::parse_github_repo(repo_url) {
         let id = format!("{}/{}/{}", owner, repo_name, commit_id);
 
-        if let Some(dirs) = ProjectDirs::from("codes", "photon", "enva") {
-            let db_path = dirs.config_dir().join("db.toml");
+        if let Some(config_dir) = shared::get_config_dir() {
+            let db_path = config_dir.join("db.toml");
 
             let text = std::fs::read_to_string(&db_path).unwrap_or_else(|_| String::new());
 
@@ -118,8 +117,8 @@ pub fn read(
 }
 
 fn read_file(file_id: &str) -> Result<String, String> {
-    if let Some(dirs) = ProjectDirs::from("codes", "photon", "enva") {
-        let envs_dir = dirs.config_dir().join("envs");
+    if let Some(config_dir) = shared::get_config_dir() {
+        let envs_dir = config_dir.join("envs");
 
         let env_file_path = envs_dir.join(file_id);
         return Ok(std::fs::read_to_string(&env_file_path)
