@@ -35,7 +35,7 @@ Enva is a CLI tool that keeps environment files synchronized across every contri
 
 ### Prerequisites
 
-- Rust toolchain (for cargo install)
+- Rust (for cargo install)
 - GitHub personal access token or the [GitHub CLI](https://cli.github.com/) (authenticated)
 - Git repository you can access (organization or personal)
 
