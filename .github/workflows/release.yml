@@ -16,6 +16,8 @@ jobs:
       service-name: enva
       binary-name: client
       binary-path: crates/client
-      prerelease: ${{ contains(github.event.pull_request.labels.*.name, 'prerelease') && 'true' || 'false' }}
+      prerelease: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'prerelease') }}
+      github-release: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'release') }}
+      build-env: "BASE_URL=https://enva.photon.codes"
     secrets:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
