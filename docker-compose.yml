@@ -9,3 +9,6 @@ services:
       - "enva_data:/config"
     environment:
       - "ENVA_CONFIG_PATH=/config"
+
+volumes:
+  enva_data:
