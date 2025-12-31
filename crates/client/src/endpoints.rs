@@ -3,7 +3,11 @@ use log::{error};
 use reqwest::{Error, Response};
 use enva_shared::models::{CommitRequest, CommitResponse, FetchRequest, FetchResponse};
 use serde::de::DeserializeOwned;
-use std::env;
+
+const BASE_URL: &str = match option_env!("BASE_URL") {
+    Some(url) => url,
+    None => "https://enva.photon.codes",
+};
 
 async fn parse_response<T: DeserializeOwned>(res: Result<Response, Error>) -> Option<T> {
     match res {
@@ -31,10 +35,9 @@ async fn parse_response<T: DeserializeOwned>(res: Result<Response, Error>) -> Op
 
 pub async fn call_commit(req: CommitRequest) -> Option<CommitResponse> {
     let client = reqwest::Client::new();
-    let base_url = env::var("BASE_URL").expect("BASE_URL environment variable must be set");
 
     let res = client
-        .post(format!("{}/commit", base_url))
+        .post(format!("{}/commit", BASE_URL))
         .bearer_auth(get_token().expect("Failed to get token"))
         .json(&req)
         .send()
@@ -45,10 +48,9 @@ pub async fn call_commit(req: CommitRequest) -> Option<CommitResponse> {
 
 pub async fn call_fetch(req: FetchRequest) -> Option<FetchResponse> {
     let client = reqwest::Client::new();
-    let base_url = env::var("BASE_URL").expect("BASE_URL environment variable must be set");
 
     let res = client
-        .post(format!("{}/fetch", base_url))
+        .post(format!("{}/fetch", BASE_URL))
         .bearer_auth(get_token().expect("Failed to get token"))
         .json(&req)
         .send()
