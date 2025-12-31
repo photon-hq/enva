@@ -57,18 +57,8 @@ jobs:
             core.setOutput('crates-release', hasCrates ? 'true' : 'false');
             core.setOutput('prerelease', hasPrerelease ? 'true' : 'false');
 
-  publish-shared:
-    needs: check-labels
-    if: needs.check-labels.outputs.crates-release == 'true'
-    uses: photon-hq/buildspace/.github/workflows/publish-crates.yml@main
-    with:
-      crate-name: enva-shared
-      crate-path: crates/shared
-    secrets: inherit
-
   release:
-    needs: [check-labels, publish-shared]
-    if: always() && (needs.publish-shared.result == 'success' || needs.publish-shared.result == 'skipped')
+    needs: [check-labels]
     uses: photon-hq/buildspace/.github/workflows/rust-service-release.yaml@main
     permissions:
       contents: write
