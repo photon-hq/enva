@@ -149,7 +149,7 @@ Expose the HTTP port by adding a `ports` block (or override via `docker compose 
 
 ```yaml
 services:
-  flux-server:
+  enva-server:
     ports:
       - "8080:8080"
 ```
