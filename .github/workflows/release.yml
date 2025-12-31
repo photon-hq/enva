@@ -65,7 +65,7 @@ jobs:
       pull-requests: read
     with:
       service-name: enva
-      binary-name: client
+      binary-name: enva
       binary-path: crates/client
       prerelease: ${{ needs.check-labels.outputs.prerelease == 'true' }}
       github-release: ${{ needs.check-labels.outputs.github-release == 'true' }}
