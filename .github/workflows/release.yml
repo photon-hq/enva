@@ -62,7 +62,7 @@ jobs:
     if: needs.check-labels.outputs.crates-release == 'true'
     uses: photon-hq/buildspace/.github/workflows/publish-crates.yml@main
     with:
-      crate-name: shared
+      crate-name: enva-shared
       crate-path: crates/shared
     secrets: inherit
 

@@ -84,7 +84,7 @@ pub async fn check_ownership() {
 
         info!("Remote URL: {}", repo_url);
 
-        if !shared::check_ownership(&get_token().expect("You need to login first"), &repo_url)
+        if !enva_shared::check_ownership(&get_token().expect("You need to login first"), &repo_url)
             .await
             .unwrap_or(false)
         {

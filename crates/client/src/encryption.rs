@@ -15,14 +15,14 @@ const SALT: &str = "photon-hq/enva";
 const SERVICE: &str = "codes.photon.enva";
 
 pub fn save_pwd(repo_url: &str, password: &str) {
-    let (owner, repo_name) = shared::parse_github_repo(repo_url).expect("Invalid repo URL");
+    let (owner, repo_name) = enva_shared::parse_github_repo(repo_url).expect("Invalid repo URL");
 
     let key = Vec::from(derive_key(&owner, &repo_name, password));
     save_derived_key(&owner, &repo_name, key).expect("Failed to save key to keychain");
 }
 
 pub fn encrypt_string(repo_url: &str, plaintext: &str) -> String {
-    let (owner, repo_name) = shared::parse_github_repo(repo_url).expect("Invalid repo URL");
+    let (owner, repo_name) = enva_shared::parse_github_repo(repo_url).expect("Invalid repo URL");
 
     let (ciphertext, nonce) = encrypt(&load_derived_key(&owner, &repo_name).expect("Failed to load key from keychain"), plaintext.as_bytes());
 
@@ -35,7 +35,7 @@ pub fn encrypt_string(repo_url: &str, plaintext: &str) -> String {
 }
 
 pub fn decrypt_string(repo_url: &str, encrypted_b64: &str) -> String {
-    let (owner, repo_name) = shared::parse_github_repo(repo_url).expect("Invalid repo URL");
+    let (owner, repo_name) = enva_shared::parse_github_repo(repo_url).expect("Invalid repo URL");
 
     let data = general_purpose::STANDARD.decode(encrypted_b64).unwrap();
 
