@@ -12,7 +12,7 @@ env_logger = "0.11.8"
 git2 = "0.20.3"
 log = "0.4.29"
 toml_edit = "0.24.0"
-shared = { version = "^0.1.0", path = "../shared" }
+shared = { version = "^0.1.1", path = "../shared" }
 tokio = { version = "1.48.0", features = ["full"] }
 which = "8.0.0"
 reqwest = { version = "0.12.26", features = ["json"] }
