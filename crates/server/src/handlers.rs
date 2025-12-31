@@ -1,8 +1,8 @@
 use crate::db;
-use shared::models::{CommitRequest, CommitResponse, FetchRequest, FetchResponse};
+use enva_shared::models::{CommitRequest, CommitResponse, FetchRequest, FetchResponse};
 use axum::Json;
 use axum::http::{HeaderMap};
-use shared::check_ownership;
+use enva_shared::check_ownership;
 
 pub async fn commit(
     headers: HeaderMap,

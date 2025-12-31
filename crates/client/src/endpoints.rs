@@ -2,7 +2,7 @@ use crate::utils::get_token;
 use dotenvy_macro::dotenv;
 use log::{error};
 use reqwest::{Error, Response};
-use shared::models::{CommitRequest, CommitResponse, FetchRequest, FetchResponse};
+use enva_shared::models::{CommitRequest, CommitResponse, FetchRequest, FetchResponse};
 use serde::de::DeserializeOwned;
 
 async fn parse_response<T: DeserializeOwned>(res: Result<Response, Error>) -> Option<T> {

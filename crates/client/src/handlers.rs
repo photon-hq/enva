@@ -7,7 +7,7 @@ use log::{error, info};
 use std::process::Command;
 use git2::Repository;
 use toml_edit::value;
-use shared::models::{CommitRequest, FetchRequest};
+use enva_shared::models::{CommitRequest, FetchRequest};
 use crate::encryption::{decrypt_string, encrypt_string, save_pwd};
 
 pub(crate) fn login(args: LoginArgs) {
@@ -50,7 +50,7 @@ pub async fn active(args: ActiveArgs) {
 
         info!("Password saved successfully");
 
-        let (owner, repo_name) = shared::parse_github_repo(&get_repo_url()).expect("Invalid repo URL");
+        let (owner, repo_name) = enva_shared::parse_github_repo(&get_repo_url()).expect("Invalid repo URL");
 
         info!("Setting encrypted flag to true in config");
 
@@ -83,7 +83,7 @@ pub async fn commit() {
 
     info!("Latest commit: {}", commit_id);
 
-    let (owner, repo_name) = shared::parse_github_repo(&repo_url).expect("Invalid repo URL");
+    let (owner, repo_name) = enva_shared::parse_github_repo(&repo_url).expect("Invalid repo URL");
 
     let doc = read_config();
 
@@ -120,7 +120,7 @@ pub async fn fetch() {
 
     let repo_url = get_repo_url();
 
-    let (owner, repo_name) = shared::parse_github_repo(&repo_url).expect("Failed to parse GitHub repo URL");
+    let (owner, repo_name) = enva_shared::parse_github_repo(&repo_url).expect("Failed to parse GitHub repo URL");
 
     let head = repo.head().expect("Failed to get HEAD reference");
     let commit = head.peel_to_commit().expect("Failed to get commit from HEAD");
