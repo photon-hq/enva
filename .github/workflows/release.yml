@@ -3,8 +3,6 @@ name: Release
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
 
 jobs:
   check-labels:
@@ -22,39 +20,31 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            let pr;
-            let labels = [];
+            // Find the merged PR for this push event
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'closed',
+              base: 'main',
+              sort: 'updated',
+              direction: 'desc',
+              per_page: 10
+            });
             
-            if (context.eventName === 'pull_request') {
-              // For PR events, use the PR directly
-              pr = context.payload.pull_request;
+            // Find the PR that was merged to this commit
+            const pr = prs.find(p => p.merge_commit_sha === context.sha);
+            
+            let labels = [];
+            if (pr) {
               labels = pr.labels.map(l => l.name.toLowerCase());
-            } else if (context.eventName === 'push') {
-              // For push events, find the merged PR
-              const { data: prs } = await github.rest.pulls.list({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                state: 'closed',
-                base: 'main',
-                sort: 'updated',
-                direction: 'desc',
-                per_page: 10
-              });
-              
-              // Find the PR that was merged to this commit
-              pr = prs.find(p => p.merge_commit_sha === context.sha);
-              
-              if (pr) {
-                labels = pr.labels.map(l => l.name.toLowerCase());
-                console.log(`Found merged PR #${pr.number} with labels: ${labels.join(', ') || 'none'}`);
-              } else {
-                console.log('No merged PR found for this commit. Defaulting to release.');
-                // Default behavior: release both if no PR found (direct push)
-                core.setOutput('github-release', 'true');
-                core.setOutput('crates-release', 'true');
-                core.setOutput('prerelease', 'false');
-                return;
-              }
+              console.log(`Found merged PR #${pr.number} with labels: ${labels.join(', ') || 'none'}`);
+            } else {
+              console.log('No merged PR found for this commit. Defaulting to release.');
+              // Default behavior: release both if no PR found (direct push)
+              core.setOutput('github-release', 'true');
+              core.setOutput('crates-release', 'true');
+              core.setOutput('prerelease', 'false');
+              return;
             }
             
             const hasRelease = labels.includes('release');
@@ -67,8 +57,18 @@ jobs:
             core.setOutput('crates-release', hasCrates ? 'true' : 'false');
             core.setOutput('prerelease', hasPrerelease ? 'true' : 'false');
 
-  release:
+  publish-shared:
     needs: check-labels
+    if: needs.check-labels.outputs.crates-release == 'true'
+    uses: photon-hq/buildspace/.github/workflows/publish-crates.yml@main
+    with:
+      crate-name: shared
+      crate-path: crates/shared
+    secrets: inherit
+
+  release:
+    needs: [check-labels, publish-shared]
+    if: always() && (needs.publish-shared.result == 'success' || needs.publish-shared.result == 'skipped')
     uses: photon-hq/buildspace/.github/workflows/rust-service-release.yaml@main
     permissions:
       contents: write
@@ -81,6 +81,4 @@ jobs:
       github-release: ${{ needs.check-labels.outputs.github-release == 'true' }}
       crates-release: ${{ needs.check-labels.outputs.crates-release == 'true' }}
       build-env: "BASE_URL=https://enva.photon.codes"
-    secrets:
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+    secrets: inherit
