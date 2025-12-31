@@ -1,2 +1,0 @@
-- name: "Set BASE_URL for builds"
-  run: echo "BASE_URL=https://enva.photon.codes" > .env
