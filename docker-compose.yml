@@ -1,0 +1,12 @@
+services:
+  enva-server:
+    build:
+      context: .
+      dockerfile: .nixpacks/Dockerfile
+    volumes:
+      - "enva_data:/config"
+    environment:
+      - "ENVA_CONFIG_PATH=/config"
+
+volumes:
+  enva_data:

@@ -2752,6 +2752,7 @@ dependencies = [
 name = "shared"
 version = "0.1.0"
 dependencies = [
+ "directories",
  "log",
  "octocrab",
  "serde",

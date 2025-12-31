@@ -1,7 +1,17 @@
 use octocrab::Octocrab;
 use log::info;
+use std::path::PathBuf;
+use directories::ProjectDirs;
 
 pub mod models;
+
+pub fn get_config_dir() -> Option<PathBuf> {
+    if let Ok(path) = std::env::var("ENVA_CONFIG_PATH") {
+        return Some(PathBuf::from(path));
+    }
+
+    ProjectDirs::from("codes", "photon", "enva").map(|dirs| dirs.config_dir().to_path_buf())
+}
 
 pub fn parse_github_repo(url: &str) -> Option<(String, String)> {
     // SSH form: git@github.com:org/repo.git

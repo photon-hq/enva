@@ -35,7 +35,7 @@ Enva is a CLI tool that keeps environment files synchronized across every contri
 
 ### Prerequisites
 
-- Rust toolchain (for cargo install)
+- Rust (for cargo install)
 - GitHub personal access token or the [GitHub CLI](https://cli.github.com/) (authenticated)
 - Git repository you can access (organization or personal)
 
@@ -122,29 +122,56 @@ git pull
 
 ## Self-Host
 
-Enva ships with a ready-to-deploy server for developers who wanna self-host. The easiest path is using Nixpacks so you never have to author a Dockerfile.
+Enva ships with a ready-to-deploy server for developers who wanna self-host. The fastest path to a persistent deployment is the included Docker Compose stack, which also works great as the base for production setups.
 
-### Deploy with Nixpacks (recommended)
+### Configure environment
+
+Create a `.env` file in the repo root before deploying so the server and CLI agree on their connection details:
+
+```bash
+PORT=8080
+ENVA_CONFIG_PATH=/config
+```
+
+- `PORT` tells the Enva server which port to bind to.
+- The server stores `db.toml` directly under the directory referenced by the `ENVA_CONFIG_PATH` environment variable and every uploaded `.env*` snapshot under an `envs/` subdirectory within that directory. Point it at a persistent path so restarting a container or VM does not wipe the data.
+- If you omit `ENVA_CONFIG_PATH` the shared crate falls back to the OS config directory.
+
+### Docker Compose (recommended)
+
+The `docker-compose.yml` file builds the server using the Nixpacks Dockerfile, mounts the `enva_data` volume at `/config`, and sets `ENVA_CONFIG_PATH=/config` so uploads persist automatically. Spin it up with:
+
+```bash
+docker compose up --build -d enva-server
+```
+
+Expose the HTTP port by adding a `ports` block (or override via `docker compose --project-name ...` if you prefer a different service name):
+
+```yaml
+services:
+  enva-server:
+    ports:
+      - "8080:8080"
+```
+
+The named volume keeps `/config/db.toml` plus `/config/envs/` alive between restarts. Remove it with `docker volume rm enva_data` only when you intend to wipe every stored environment snapshot.
+
+### Deploy with Nixpacks (alternative)
 
 ```bash
 git clone https://github.com/photon-hq/enva.git
 cd enva
-echo "PORT=8080" > .env
 nixpacks build . --name enva-server
-docker run -p 8080:8080 enva-server
+docker run -d \
+  --name enva-server \
+  -p 8080:8080 \
+  -e ENVA_CONFIG_PATH=/config \
+  -v enva_data:/config \
+  enva-server
 ```
 
-### Railway
+Use any host path or named volume instead of `enva_data` if you already manage a standard data directory.
 
-```bash
-echo "PORT=8080" > .env
-railway up
-```
-
-### Render
-
-1. Create an `.env` file in the repo (`PORT=8080`, database paths, etc.).
-2. Point Render at the repository, select the Nixpacks build option, and deploy.
 ## Limitations
 
 - GitHub repositories only (the CLI rejects other Git hosts).
