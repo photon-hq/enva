@@ -1,5 +1,5 @@
 services:
-  flux-server:
+  enva-server:
     build:
       context: .
       dockerfile: .nixpacks/Dockerfile

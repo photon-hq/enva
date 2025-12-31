@@ -134,7 +134,7 @@ ENVA_CONFIG_PATH=/config
 ```
 
 - `PORT` tells the Enva server which port to bind to.
-- The server stores every uploaded `.env*` snapshot plus `db.toml` under the directory referenced by the `ENVA_CONFIG_PATH` environment variable. Point it at a persistent path so restarting a container or VM does not wipe the data.
+- The server stores `db.toml` directly under the directory referenced by the `ENVA_CONFIG_PATH` environment variable and every uploaded `.env*` snapshot under an `envs/` subdirectory within that directory. Point it at a persistent path so restarting a container or VM does not wipe the data.
 - If you omit `ENVA_CONFIG_PATH` the shared crate falls back to the OS config directory.
 
 ### Docker Compose (recommended)
@@ -142,7 +142,7 @@ ENVA_CONFIG_PATH=/config
 The `docker-compose.yml` file builds the server using the Nixpacks Dockerfile, mounts the `enva_data` volume at `/config`, and sets `ENVA_CONFIG_PATH=/config` so uploads persist automatically. Spin it up with:
 
 ```bash
-docker compose up --build -d flux-server
+docker compose up --build -d enva-server
 ```
 
 Expose the HTTP port by adding a `ports` block (or override via `docker compose --project-name ...` if you prefer a different service name):

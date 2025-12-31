@@ -1,1 +1,1 @@
-docker build . -f ./.nixpacks/Dockerfile -t flux-server --build-arg NIXPACKS_METADATA=rust --build-arg ROCKET_ADDRESS=0.0.0.0
+docker build . -f ./.nixpacks/Dockerfile -t enva-server --build-arg NIXPACKS_METADATA=rust --build-arg ROCKET_ADDRESS=0.0.0.0
