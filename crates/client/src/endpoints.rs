@@ -4,9 +4,10 @@ use reqwest::{Error, Response};
 use enva_shared::models::{CommitRequest, CommitResponse, FetchRequest, FetchResponse, CheckCommitRequest, CheckCommitResponse};
 use serde::de::DeserializeOwned;
 
-const BASE_URL: &str = match option_env!("BASE_URL") {
-    Some(url) => url,
-    None => "https://enva.photon.codes",
+const BASE_URL: &str = if let Some(url) = option_env!("BASE_URL") {
+    url
+} else {
+    "https://enva.photon.codes"
 };
 
 async fn parse_response<T: DeserializeOwned>(res: Result<Response, Error>) -> Option<T> {
