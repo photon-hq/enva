@@ -1,5 +1,5 @@
 use crate::db;
-use enva_shared::models::{CommitRequest, CommitResponse, FetchRequest, FetchResponse};
+use enva_shared::models::{CommitRequest, CommitResponse, FetchRequest, FetchResponse, CheckCommitRequest, CheckCommitResponse};
 use axum::Json;
 use axum::http::{HeaderMap};
 use enva_shared::check_ownership;
@@ -109,6 +109,56 @@ pub async fn fetch(
             Json(FetchResponse {
                 success: false,
                 env_files: None,
+                error: Some(err),
+            })
+        }
+    }
+}
+
+pub async fn check_commit(
+    headers: HeaderMap,
+    Json(request): Json<CheckCommitRequest>,
+) -> Json<CheckCommitResponse> {
+    let auth_token = headers
+        .get("Authorization")
+        .and_then(|value| value.to_str().ok())
+        .and_then(|s| s.strip_prefix("Bearer "))
+        .unwrap_or_default();
+
+    if auth_token.is_empty() {
+        return Json(CheckCommitResponse {
+            exists: false,
+            error: Some("No token provided".into()),
+        });
+    }
+
+    match check_ownership(auth_token, &request.repo_url).await {
+        Ok(status) => {
+            if !status {
+                return Json(CheckCommitResponse {
+                    exists: false,
+                    error: Some("You don't have ownership of this repository".into()),
+                });
+            }
+        }
+        Err(err) => {
+            return Json(CheckCommitResponse {
+                exists: false,
+                error: Some(err),
+            });
+        }
+    }
+
+    match db::exists(&request.repo_url, &request.commit_id) {
+        Ok(exists) => {
+            Json(CheckCommitResponse {
+                exists,
+                error: None,
+            })
+        }
+        Err(err) => {
+            Json(CheckCommitResponse {
+                exists: false,
                 error: Some(err),
             })
         }

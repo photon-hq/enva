@@ -7,8 +7,9 @@ use log::{error, info};
 use std::process::Command;
 use git2::Repository;
 use toml_edit::value;
-use enva_shared::models::{CommitRequest, FetchRequest};
+use enva_shared::models::{CheckCommitRequest, CommitRequest, FetchRequest};
 use crate::encryption::{decrypt_string, encrypt_string, save_pwd};
+use crate::endpoints::call_check;
 
 pub(crate) fn login(args: LoginArgs) {
     let mut token = args.token.unwrap_or_default();
@@ -67,7 +68,17 @@ pub async fn active(args: ActiveArgs) {
     write_git_hook("post-merge", &format!("{} fetch", enva_path.display()));
     write_git_hook("post-checkout", &format!("{} fetch", enva_path.display()));
 
-    fetch().await;
+    let repo = Repository::open(".").expect("Failed to open git repository");
+    let head = repo.head().expect("Failed to get HEAD reference");
+    let commit = head.peel_to_commit().expect("Failed to get commit from HEAD");
+    let commit_id = commit.id().to_string();
+
+    if call_check(CheckCommitRequest {
+        commit_id,
+        repo_url: get_repo_url(),
+    }).await.expect("Failed to check commit").exists {
+        fetch().await;
+    }
 }
 
 pub async fn commit() {

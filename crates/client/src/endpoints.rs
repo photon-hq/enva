@@ -1,12 +1,13 @@
 use crate::utils::get_token;
 use log::{error};
 use reqwest::{Error, Response};
-use enva_shared::models::{CommitRequest, CommitResponse, FetchRequest, FetchResponse};
+use enva_shared::models::{CommitRequest, CommitResponse, FetchRequest, FetchResponse, CheckCommitRequest, CheckCommitResponse};
 use serde::de::DeserializeOwned;
 
-const BASE_URL: &str = match option_env!("BASE_URL") {
-    Some(url) => url,
-    None => "https://enva.photon.codes",
+const BASE_URL: &str = if let Some(url) = option_env!("BASE_URL") {
+    url
+} else {
+    "https://enva.photon.codes"
 };
 
 async fn parse_response<T: DeserializeOwned>(res: Result<Response, Error>) -> Option<T> {
@@ -57,4 +58,17 @@ pub async fn call_fetch(req: FetchRequest) -> Option<FetchResponse> {
         .await;
 
     parse_response::<FetchResponse>(res).await
+}
+
+pub async fn call_check(req: CheckCommitRequest) -> Option<CheckCommitResponse> {
+    let client = reqwest::Client::new();
+
+    let res = client
+        .post(format!("{}/check", BASE_URL))
+        .bearer_auth(get_token().expect("Failed to get token"))
+        .json(&req)
+        .send()
+        .await;
+
+    parse_response::<CheckCommitResponse>(res).await
 }
