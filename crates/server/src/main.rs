@@ -12,7 +12,8 @@ async fn main() {
 
     let app = Router::new()
         .route("/commit", post(handlers::commit))
-        .route("/fetch", post(handlers::fetch));
+        .route("/fetch", post(handlers::fetch))
+        .route("/check", post(handlers::check_commit));
 
     let addr = SocketAddr::from((
         [0, 0, 0, 0],

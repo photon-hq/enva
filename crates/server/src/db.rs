@@ -128,3 +128,32 @@ fn read_file(file_id: &str) -> Result<String, String> {
 
     Err(format!("Failed to read file: {}", file_id))
 }
+
+pub fn exists(repo_url: &str, commit_id: &str) -> Result<bool, String> {
+    if let Some((owner, repo_name)) = enva_shared::parse_github_repo(repo_url) {
+        let id = format!("{}/{}/{}", owner, repo_name, commit_id);
+
+        if let Some(config_dir) = enva_shared::get_config_dir() {
+            let db_path = config_dir.join("db.toml");
+
+            // If the database file doesn't exist, return false
+            if !db_path.exists() {
+                return Ok(false);
+            }
+
+            let text = std::fs::read_to_string(&db_path).unwrap_or_else(|_| String::new());
+
+            // If file is empty, return false
+            if text.is_empty() {
+                return Ok(false);
+            }
+
+            let doc = text.parse::<DocumentMut>().map_err(|e| e.to_string())?;
+            let db: Database = from_document(doc.clone()).map_err(|e| e.to_string())?;
+
+            return Ok(db.commits.contains_key(&id));
+        }
+    }
+
+    Err(format!("Failed to parse repo URL: {}", repo_url))
+}
