@@ -1,23 +1,23 @@
 [package]
 name = "enva"
-version = "1.0.0"
-edition = "2024"
-license = "MIT"
-repository = "https://github.com/photon-hq/enva"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
 description = "CLI client for enva - environment variable management"
 
 [dependencies]
 clap = { version = "4.5.53", features = ["derive"] }
-directories = "6.0.0"
-env_logger = "0.11.8"
+directories.workspace = true
+env_logger.workspace = true
 git2 = "0.20.3"
-log = "0.4.29"
-toml_edit = "0.24.0"
-enva-shared = { version = "^0.1.0", path = "../shared" }
-tokio = { version = "1.48.0", features = ["full"] }
+log.workspace = true
+toml_edit.workspace = true
+enva-shared.workspace = true
+tokio.workspace = true
 which = "8.0.0"
 reqwest = { version = "0.12.26", features = ["json"] }
-serde = "1.0.228"
+serde.workspace = true
 pbkdf2 = "0.12.2"
 sha2 = "0.10.9"
 zeroize = "1.8.2"
