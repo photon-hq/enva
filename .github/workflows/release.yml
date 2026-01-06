@@ -5,60 +5,7 @@ on:
     branches: [main]
 
 jobs:
-  check-labels:
-    name: Check PR Labels
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: read
-    outputs:
-      github-release: ${{ steps.check.outputs.github-release }}
-      crates-release: ${{ steps.check.outputs.crates-release }}
-      prerelease: ${{ steps.check.outputs.prerelease }}
-    steps:
-      - name: Read labels from PR or merged PR
-        id: check
-        uses: actions/github-script@v7
-        with:
-          script: |
-            // Find the merged PR for this push event
-            const { data: prs } = await github.rest.pulls.list({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'closed',
-              base: 'main',
-              sort: 'updated',
-              direction: 'desc',
-              per_page: 10
-            });
-            
-            // Find the PR that was merged to this commit
-            const pr = prs.find(p => p.merge_commit_sha === context.sha);
-            
-            let labels = [];
-            if (pr) {
-              labels = pr.labels.map(l => l.name.toLowerCase());
-              console.log(`Found merged PR #${pr.number} with labels: ${labels.join(', ') || 'none'}`);
-            } else {
-              console.log('No merged PR found for this commit. Defaulting to release.');
-              // Default behavior: release both if no PR found (direct push)
-              core.setOutput('github-release', 'true');
-              core.setOutput('crates-release', 'true');
-              core.setOutput('prerelease', 'false');
-              return;
-            }
-            
-            const hasRelease = labels.includes('release');
-            const hasCrates = labels.includes('crates');
-            const hasPrerelease = labels.includes('prerelease');
-            
-            console.log(`Labels check - release: ${hasRelease}, crates: ${hasCrates}, prerelease: ${hasPrerelease}`);
-            
-            core.setOutput('github-release', hasRelease ? 'true' : 'false');
-            core.setOutput('crates-release', hasCrates ? 'true' : 'false');
-            core.setOutput('prerelease', hasPrerelease ? 'true' : 'false');
-
   release:
-    needs: [check-labels]
     uses: photon-hq/buildspace/.github/workflows/rust-service-release.yaml@main
     permissions:
       contents: write
