@@ -841,7 +841,7 @@ dependencies = [
 
 [[package]]
 name = "enva"
-version = "1.0.0"
+version = "1.1.1"
 dependencies = [
  "aes-gcm",
  "base64",
@@ -863,8 +863,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "enva-server"
+version = "1.1.1"
+dependencies = [
+ "axum",
+ "directories",
+ "env_logger",
+ "enva-shared",
+ "log",
+ "serde",
+ "serde_json",
+ "tokio",
+ "toml",
+ "toml_edit 0.24.0+spec-1.1.0",
+ "uuid",
+]
+
+[[package]]
 name = "enva-shared"
-version = "0.1.0"
+version = "1.1.1"
 dependencies = [
  "directories",
  "log",
@@ -2699,23 +2716,6 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
-]
-
-[[package]]
-name = "server"
-version = "0.1.0"
-dependencies = [
- "axum",
- "directories",
- "env_logger",
- "enva-shared",
- "log",
- "serde",
- "serde_json",
- "tokio",
- "toml",
- "toml_edit 0.24.0+spec-1.1.0",
- "uuid",
 ]
 
 [[package]]
