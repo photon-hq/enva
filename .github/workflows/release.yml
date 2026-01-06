@@ -66,9 +66,6 @@ jobs:
     with:
       service-name: enva
       binary-name: enva
-      binary-path: crates/client
-      prerelease: ${{ needs.check-labels.outputs.prerelease == 'true' }}
-      github-release: ${{ needs.check-labels.outputs.github-release == 'true' }}
-      crates-release: ${{ needs.check-labels.outputs.crates-release == 'true' }}
+      crates: '["crates/shared"."crates/client"]'
       build-env: "BASE_URL=https://enva.photon.codes"
     secrets: inherit
