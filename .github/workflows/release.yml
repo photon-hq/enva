@@ -13,6 +13,6 @@ jobs:
     with:
       service-name: enva
       binary-name: enva
-      crates: '["crates/shared"."crates/client"]'
+      crates: '["crates/shared","crates/client"]'
       build-env: "BASE_URL=https://enva.photon.codes"
     secrets: inherit
