@@ -841,7 +841,7 @@ dependencies = [
 
 [[package]]
 name = "enva"
-version = "1.1.1"
+version = "1.1.2"
 dependencies = [
  "aes-gcm",
  "base64",
@@ -864,7 +864,7 @@ dependencies = [
 
 [[package]]
 name = "enva-server"
-version = "1.1.1"
+version = "1.1.2"
 dependencies = [
  "axum",
  "directories",
@@ -881,7 +881,7 @@ dependencies = [
 
 [[package]]
 name = "enva-shared"
-version = "1.1.1"
+version = "1.1.2"
 dependencies = [
  "directories",
  "log",
