@@ -16,7 +16,7 @@ ENV NIXPACKS_METADATA=$NIXPACKS_METADATA ROCKET_ADDRESS=$ROCKET_ADDRESS
 
 # build phase
 COPY . /app/.
-RUN --mount=type=cache,id=WkvVxDpKwCU-/root/cargo/git,target=/root/.cargo/git --mount=type=cache,id=WkvVxDpKwCU-/root/cargo/registry,target=/root/.cargo/registry cargo build --release -p server
+RUN --mount=type=cache,id=WkvVxDpKwCU-/root/cargo/git,target=/root/.cargo/git --mount=type=cache,id=WkvVxDpKwCU-/root/cargo/registry,target=/root/.cargo/registry cargo build --release -p enva-server
 
 
 

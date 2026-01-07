@@ -1,5 +1,5 @@
 [phases.build]
-cmds = ["cargo build --release -p server"]
+cmds = ["cargo build --release -p enva-server"]
 
 [start]
 cmd = "./target/release/server"

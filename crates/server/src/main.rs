@@ -2,7 +2,7 @@ mod handlers;
 mod db;
 
 use axum::Router;
-use axum::routing::post;
+use axum::routing::{get, post};
 use std::env;
 use std::net::SocketAddr;
 
@@ -11,6 +11,7 @@ async fn main() {
     env_logger::init();
 
     let app = Router::new()
+        .route("/", get(|| async { "OK" }))
         .route("/commit", post(handlers::commit))
         .route("/fetch", post(handlers::fetch))
         .route("/check", post(handlers::check_commit));
