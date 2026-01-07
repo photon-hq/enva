@@ -98,7 +98,11 @@ pub async fn commit() {
 
     let doc = read_config();
 
-    let encrypted = doc[&format!("{owner}:{repo_name}")]["encrypted"].as_bool().unwrap_or(false);
+    let encrypted = doc
+        .get(&format!("{owner}:{repo_name}"))
+        .and_then(|item| item.get("encrypted"))
+        .and_then(|item| item.as_bool())
+        .unwrap_or(false);
 
     let env_files = match encrypted {
         false => read_env_file(),
@@ -151,7 +155,11 @@ pub async fn fetch() {
     info!("Env files fetched successfully");
 
     let doc = read_config();
-    let encrypted = doc[&format!("{owner}:{repo_name}")]["encrypted"].as_bool().unwrap_or(false);
+    let encrypted = doc
+        .get(&format!("{owner}:{repo_name}"))
+        .and_then(|item| item.get("encrypted"))
+        .and_then(|item| item.as_bool())
+        .unwrap_or(false);
 
     for (file_path, content) in res.env_files.unwrap_or_default() {
         std::fs::write(file_path, match encrypted {

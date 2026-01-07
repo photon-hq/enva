@@ -32,7 +32,10 @@ pub fn write_config(doc: DocumentMut) {
 
 pub fn get_token() -> Option<String> {
     let doc = read_config();
-    doc["auth"]["gh_token"].as_str().map(|s| s.to_string())
+    doc.get("auth")
+        .and_then(|item| item.get("gh_token"))
+        .and_then(|item| item.as_str())
+        .map(|s| s.to_string())
 }
 
 pub fn write_git_hook(hook_name: &str, hook_content: &str) {
@@ -66,11 +69,47 @@ pub fn write_git_hook(hook_name: &str, hook_content: &str) {
 
 pub fn get_repo_url() -> String {
     let repo = Repository::open(".").expect("Failed to open git repository");
-    let remote = repo
-        .find_remote("origin")
-        .expect("Failed to find remote origin");
 
-    remote.url().expect("Failed to get remote URL").to_string()
+    // Try to get the remote from the current branch's upstream
+    if let Ok(head) = repo.head()
+        && let Some(branch_name) = head.shorthand()
+        && let upstream_remote_key = format!("branch.{}.remote", branch_name)
+        && let Ok(config) = repo.config()
+        && let Ok(remote_name) = config.get_string(&upstream_remote_key)
+        && let Ok(remote) = repo.find_remote(&remote_name)
+        && let Some(url) = remote.url()
+    {
+        info!(
+            "Using branch '{}' upstream remote '{}' with URL: {}",
+            branch_name, remote_name, url
+        );
+        return url.to_string();
+    }
+
+    // Try common remote names
+    for name in ["origin", "main", "upstream"] {
+        if let Ok(remote) = repo.find_remote(name)
+            && let Some(url) = remote.url()
+        {
+            info!("Found remote '{}' with URL: {}", name, url);
+            return url.to_string();
+        }
+    }
+
+    // Get the first available remote
+    let remotes = repo.remotes().expect("Failed to get list of remotes");
+    if let Some(first_remote_name) = remotes.get(0)
+        && let Ok(remote) = repo.find_remote(first_remote_name)
+        && let Some(url) = remote.url()
+    {
+        info!(
+            "Using first available remote '{}' with URL: {}",
+            first_remote_name, url
+        );
+        return url.to_string();
+    }
+
+    panic!("No git remote found. Please add a remote with 'git remote add <name> <url>'");
 }
 
 pub async fn check_ownership() {
