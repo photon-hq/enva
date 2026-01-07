@@ -2,4 +2,4 @@
 cmds = ["cargo build --release -p enva-server"]
 
 [start]
-cmd = "./target/release/server"
+cmd = "./target/release/enva-server"

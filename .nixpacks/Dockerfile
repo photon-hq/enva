@@ -24,5 +24,5 @@ RUN --mount=type=cache,id=WkvVxDpKwCU-/root/cargo/git,target=/root/.cargo/git --
 # start
 COPY . /app
 
-CMD ["./target/release/server"]
+CMD ["./target/release/enva-server"]
 
